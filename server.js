@@ -1,11 +1,14 @@
-const inquirer = require('inquirer');
-const mysql = require('mysql2/promise');
+const inquirer = require("inquirer");
+const mysql = require("mysql2/promise");
 
-require('dotenv').config();
+
+require("dotenv").config();
+
 
 const dbUser = process.env.DB_USER;
 const dbPassword = process.env.DB_PASSWORD;
 const dbName = process.env.DB_NAME;
+
 
 async function dbConnection(select) {
     try {
@@ -16,8 +19,10 @@ async function dbConnection(select) {
             database: dbName,
         });
 
+
         let returnedRowsFromDb = [];
         let returnedOutputFromInq = [];
+
 
         switch (select) {
 
@@ -26,21 +31,22 @@ async function dbConnection(select) {
                 console.table(returnedRowsFromDb[0]);
                 break;
 
+
             case "View All Roles":
                 returnedRowsFromDb = await db.query(`
-    SELECT
-    role.id,
-    role.title,
-    role.salary,
-    department.name AS department
-    FROM role
-    JOIN department ON role.department_id = department.id
-    `);
+                SELECT
+                    role.id,
+                    role.title,
+                    role.salary,
+                    department.name AS department
+                FROM role
+                JOIN department ON role.department_id = department.id
+                `);
                 console.table(returnedRowsFromDb[0]);
                 break;
 
-            case "View All Employees":
 
+            case "View All Employees":
                 returnedRowsFromDb = await db.query(`
                 SELECT
                     employee.id,
@@ -49,13 +55,16 @@ async function dbConnection(select) {
                     role.title AS title,
                     department.name AS department,
                     role.salary AS salary,
-                    CASE WHEN employee.manager_id IS NOT NULL THEN CONCAT(manager_table.first_name, '', manager_table.last_name) ELSE NULL END AS manager FROM employee
-                    JOIN role ON employee.role_id = role.id
-                    JOIN department ON role.dpartment_id = department.id
-                    JOIN employee manager_table ON employee.manager_id = manager_table.id
-`);
+                    CASE WHEN employee.manager_id IS NOT NULL THEN CONCAT(manager_table.first_name,' ', manager_table.last_name) ELSE NULL END AS manager
+                FROM employee
+                JOIN role ON employee.role_id = role.id
+                JOIN department ON role.department_id = department.id
+                JOIN employee manager_table ON employee.manager_id = manager_table.id
+                `);
                 console.table(returnedRowsFromDb[0]);
                 break;
+
+
             case "Add a Department":
                 returnedOutputFromInq = await inquirer.prompt([
                     {
@@ -65,15 +74,19 @@ async function dbConnection(select) {
                 ]);
 
                 try {
-                    retrurnedRowsFromDb = await db.query(
+
+                    returnedRowsFromDb = await db.query(
                         `INSERT INTO department (name) VALUES ('${returnedOutputFromInq.department}');`
                     );
                 } catch (error) {
-                    console.log('Cannot insert duplicate Department');
+                    console.log("Cannot insert duplicate Department");
                 }
+
                 break;
 
+
             case "Add a Role":
+
                 returnedOutputFromInq = await inquirer.prompt([
                     {
                         name: "roleName",
@@ -89,26 +102,31 @@ async function dbConnection(select) {
                     },
                 ]);
 
+
                 const { roleName, roleSalary, roleDpt } = returnedOutputFromInq;
 
+
                 const returnDepartmentId = await db.query(
-                    `SELECT IF NULL ((SELECT id FROM department WHERE name = '${roleDpt}'), Department Does Not Exist")`
+                    `SELECT IFNULL((SELECT id FROM department WHERE name = "${roleDpt}"), "Department Does Not Exist")`
                 );
+
 
                 const [rows] = returnDepartmentId;
                 const department_id = Object.values(rows[0])[0];
 
+
                 if (department_id === "Department Does Not Exist") {
-                    console.log("Enter a Role in an Existing Department");
+                    console.log("Enter a Role in an Existing Department!");
                     break;
                 }
 
-                returnedRowsFromDb = await db.query(
-                    `INSERT INTO role (title, salary, department_id) VALUES ('${roleName}', '${roleSalary}', '${department_id}');`
 
+                returnedRowsFromDb = await db.query(
+                    ` INSERT INTO role (title, salary, department_id) VALUES ('${roleName}', '${roleSalary}', '${department_id}');`
                 );
 
                 break;
+
 
             case "Add an Employee":
                 returnedOutputFromInq = await inquirer.prompt([
@@ -122,7 +140,7 @@ async function dbConnection(select) {
                     },
                     {
                         name: "role",
-                        message: "Enter new Employee's Role:",
+                        message: "Enter New Employee's Role:",
                     },
                     {
                         name: "manager",
@@ -139,15 +157,19 @@ async function dbConnection(select) {
                 const { first_name, last_name, role, manager } = returnedOutputFromInq;
 
                 const role_data = allRoles[0].filter((r) => {
+                    return r.title === role;
+                });
+
+                const manager_data = allManagers[0].filter((m) => {
                     return `${m.first_name} ${m.last_name}` === manager;
                 });
 
                 returnedRowsFromDb = await db.query(
-                    `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${first_name}', ${last_name}', ${role_data[0].id}, ${manager_data[0].id})`
-
+                    `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${first_name}', '${last_name}', ${role_data[0].id}, ${manager_data[0].id})`
                 );
 
                 break;
+
 
             case "Update an Employee Role":
                 currentEmployees = await db.query(`
@@ -175,7 +197,7 @@ async function dbConnection(select) {
                         type: "list",
                         name: "employeeId",
                         message: "Choose Which Employee to Update:",
-                        choice: employeeList,
+                        choices: employeeList,
                     },
                     {
                         type: "list",
@@ -187,31 +209,31 @@ async function dbConnection(select) {
 
                 console.log(returnedOutputFromInq);
 
+
                 returnedRowsFromDb = await db.query(`
-                UPDATE employee
-                SET role_id = ${returnedOutputFromInq.newRole}
-                WHERE employee.id = ${returnedOutputFromInq.employeeId};`);
+                    UPDATE employee
+                    SET role_id = ${returnedOutputFromInq.newRole}
+                    WHERE employee.id = ${returnedOutputFromInq.employeeId};`);
 
                 break;
-
         }
     } catch (err) {
         console.log(err);
     }
 }
 
-function userPromt() {
+function userPrompt() {
     inquirer
         .prompt([
             {
                 type: "list",
                 name: "select",
-                message: "What Would like to do?",
+                message: "What would you like to do?",
                 choices: [
                     "View All Departments",
                     "View All Roles",
                     "View All Employees",
-                    "View a Department",
+                    "Add a Department",
                     "Add a Role",
                     "Add an Employee",
                     "Update an Employee Role",
@@ -232,4 +254,4 @@ function userPromt() {
         });
 }
 
-userPromt();
+userPrompt();
