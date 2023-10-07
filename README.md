@@ -25,7 +25,7 @@ Mit
     
 
 ### Gif/Screenshot
-![demo](https://drive.google.com/file/d/1lyZNXL6hyldD6ake2WHyGXhyrH09mnMG/view)
+(https://drive.google.com/file/d/1lyZNXL6hyldD6ake2WHyGXhyrH09mnMG/view)
     
 
 ### Deployed website
