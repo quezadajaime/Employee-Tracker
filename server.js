@@ -4,12 +4,12 @@ const mysql = require("mysql2/promise");
 
 require("dotenv").config();
 
-
+//dotenv variables
 const dbUser = process.env.DB_USER;
 const dbPassword = process.env.DB_PASSWORD;
 const dbName = process.env.DB_NAME;
 
-
+// Connect to db
 async function dbConnection(select) {
     try {
         const db = await mysql.createConnection({
@@ -23,15 +23,14 @@ async function dbConnection(select) {
         let returnedRowsFromDb = [];
         let returnedOutputFromInq = [];
 
-
+        //switches for all user input cases
         switch (select) {
-
             case "View All Departments":
                 returnedRowsFromDb = await db.query("SELECT * FROM department");
                 console.table(returnedRowsFromDb[0]);
                 break;
 
-
+            //role id, job title, department value, salary value
             case "View All Roles":
                 returnedRowsFromDb = await db.query(`
                 SELECT
@@ -45,7 +44,7 @@ async function dbConnection(select) {
                 console.table(returnedRowsFromDb[0]);
                 break;
 
-
+            //shows employee id, first name, last name, job title, department, salary and manager
             case "View All Employees":
                 returnedRowsFromDb = await db.query(`
                 SELECT
@@ -64,7 +63,7 @@ async function dbConnection(select) {
                 console.table(returnedRowsFromDb[0]);
                 break;
 
-
+            //adds new department to db
             case "Add a Department":
                 returnedOutputFromInq = await inquirer.prompt([
                     {
@@ -84,7 +83,7 @@ async function dbConnection(select) {
 
                 break;
 
-
+            //adds a new role to the db
             case "Add a Role":
 
                 returnedOutputFromInq = await inquirer.prompt([
@@ -105,7 +104,7 @@ async function dbConnection(select) {
 
                 const { roleName, roleSalary, roleDpt } = returnedOutputFromInq;
 
-
+                //makes a variable to store the values from the db call to get the department id
                 const returnDepartmentId = await db.query(
                     `SELECT IFNULL((SELECT id FROM department WHERE name = "${roleDpt}"), "Department Does Not Exist")`
                 );
@@ -127,7 +126,7 @@ async function dbConnection(select) {
 
                 break;
 
-
+            //adds a new employee to the db
             case "Add an Employee":
                 returnedOutputFromInq = await inquirer.prompt([
                     {
@@ -170,7 +169,7 @@ async function dbConnection(select) {
 
                 break;
 
-
+            //updates an employees role
             case "Update an Employee Role":
                 currentEmployees = await db.query(`
                 SELECT id, first_name, last_name FROM employee;`);
