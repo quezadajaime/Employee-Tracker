@@ -16,11 +16,5 @@ VALUES ("Head Scientist", 200000, 1),
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES ("Hubert", "Farnsworth", 1, NULL),
-       ("Phillip", "Fry", 2, 1),
-       ("Turana", "Leela", 3, 1),
-       ("Bender", "Rodriguez", 4, 1),
-       ("Hermes", "Conrad", 5, 1),
-       ("John", "Zoidberg", 6, 1),
-       ("Amy", "Wong", 7, 1),
-       ("Zapp", "Brannigan", 8, NULL),
-       ("Kif", "Kroker", 9, 8);                     
+       ("Kif", "Kroker", 2, 1);
+               
